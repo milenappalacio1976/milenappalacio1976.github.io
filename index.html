@@ -52,11 +52,11 @@ const USUARIO = 'milenappalacio1976';
 const REPO = 'milenappalacio1976.github.io';
 
 // Incluye el espacio (%20) tal como se llama tu carpeta en GitHub
-const RUTA_CARPETA = 'assets/images'; 
+const RUTA_CARPETA = 'assets/images';
 
 async function cargarGaleria(){
   // /contents/ DEBE ir aquí en la URL de la API de GitHub
-  const url = `https://api.github.com/repos/${USUARIO}/${REPO}/contents/${RUTA_CARPETA}`;
+  const url = `https://${USUARIO}/${RUTA_CARPETA}/`;
   const galeria = document.getElementById('galeria');
   const loader = document.getElementById('loader');
 
