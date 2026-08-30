@@ -50,34 +50,36 @@
 <script>
 const USUARIO = 'milenappalacio1976';
 const REPO = 'milenappalacio1976.github.io';
-const RUTA_IMAGENES_LOCAL = './assets/images';
+const CARPETA_IMAGENES = 'assets/images';
 
-// Respaldo manual en caso de que falle la llamada API o no haya conexión
+// Respaldo manual en caso de que falle la API de GitHub (ej: límite de peticiones)
 const RESPALDO_IMAGENES = [
   'IMG-20260826-WA0122.jpg'
 ];
 
 /**
- * Convierte una ruta relativa local (como ./assets/images) 
- * en la ruta exacta que requiere la API de GitHub según dónde esté el HTML.
+ * Obtiene la ruta de la carpeta del repositorio relativa al HTML actual
+ * Ejemplo: si la URL es .../epoca/2020/index.html
+ * Devuelve: "epoca/2020/assets/images"
  */
-function obtenerRutaRelativaRepo(rutaRelativa) {
-  // Construye la URL absoluta según la ubicación actual del archivo HTML
-  const urlAbsoluta = new URL(rutaRelativa, window.location.href);
+function obtenerRutaGithub() {
+  // Obtiene el directorio base del HTML actual
+  let pathHTML = window.location.pathname;
+  let dirActual = pathHTML.substring(0, pathHTML.lastIndexOf('/'));
   
-  // Extrae la ruta del pathname y limpia barra inicial
-  let path = urlAbsoluta.pathname.replace(/^\//, '');
+  // Elimina barras diagonales sobrantes al inicio y final
+  dirActual = dirActual.replace(/^\/+|\/+$/g, '');
 
-  // Retorna la carpeta exacta para consultar a la API de GitHub
-  return path;
+  // Une el directorio del HTML con la carpeta de imágenes
+  return dirActual ? `${dirActual}/${CARPETA_IMAGENES}` : CARPETA_IMAGENES;
 }
 
 async function cargarGaleria() {
   const loader = document.getElementById('loader');
   
-  // Resuelve la ruta relativa de assets/images dinámicamente
-  const carpetaGithub = obtenerRutaRelativaRepo(RUTA_IMAGENES_LOCAL);
-  const apiUrl = `https://api.github.com/repos/${USUARIO}/${REPO}/contents/${carpetaGithub}`;
+  // Construye dinámicamente la ruta completa para la API
+  const rutaRepo = obtenerRutaGithub();
+  const apiUrl = `https://api.github.com/repos/${USUARIO}/${REPO}/contents/${rutaRepo}`;
 
   try {
     const res = await fetch(apiUrl);
@@ -108,8 +110,8 @@ function renderizar(nombresArchivos) {
   galeria.innerHTML = '';
 
   nombresArchivos.forEach(nombre => {
-    // Uso estricto de ruta relativa local para renderizar el elemento <img>
-    const urlImagen = `${RUTA_IMAGENES_LOCAL}/${nombre}`;
+    // Se usa la ruta relativa local directa de la imagen en HTML
+    const urlImagen = `./${CARPETA_IMAGENES}/${nombre}`;
 
     const card = document.createElement('div');
     card.className = 'card';
