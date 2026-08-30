@@ -47,26 +47,28 @@
 </div>
 
 <script>
-// === CONFIGURA AQUÍ TU RUTA ===
+// === CONFIGURACIÓN DE RUTA ===
 const USUARIO = 'milenappalacio1976';
 const REPO = 'milenappalacio1976.github.io';
-const RUTA_CARPETA = 'assets/images/';
-// ==============================
+
+// Incluye el espacio (%20) tal como se llama tu carpeta en GitHub
+const RUTA_CARPETA = 'assets/%20images'; 
 
 async function cargarGaleria(){
-  const url = `https://api.github.com/repos/${USUARIO}/${REPO}/${RUTA_CARPETA}`;
+  // /contents/ DEBE ir aquí en la URL de la API de GitHub
+  const url = `https://api.github.com/repos/${USUARIO}/${REPO}/contents/${RUTA_CARPETA}`;
   const galeria = document.getElementById('galeria');
   const loader = document.getElementById('loader');
 
   try{
     const res = await fetch(url);
-    if(!res.ok) throw new Error('No se pudo leer la carpeta. Verifica que exista assets/images');
+    if(!res.ok) throw new Error('No se pudo leer la carpeta. Verifica la ruta.');
     const archivos = await res.json();
 
     const imagenes = archivos.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|avif)$/i));
 
     if(imagenes.length === 0){
-      loader.textContent = 'La carpeta assets/images está vacía. Sube fotos.';
+      loader.textContent = 'La carpeta está vacía. Sube fotos.';
       return;
     }
 
@@ -88,17 +90,6 @@ async function cargarGaleria(){
     console.error(err);
   }
 }
-
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = document.getElementById('lightbox-img');
-function abrir(src){
-  lightboxImg.src = src;
-  lightbox.classList.add('active');
-}
-document.getElementById('cerrar').onclick = () => lightbox.classList.remove('active');
-lightbox.onclick = (e) => { if(e.target === lightbox) lightbox.classList.remove('active'); }
-
-cargarGaleria();
 </script>
 </body>
 </html>
