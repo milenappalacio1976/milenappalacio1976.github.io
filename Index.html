@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Aliados - Galería</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Inter,system-ui;background:#0f0f0f;color:#fff;padding:24px}
+  h1{font-size:28px;text-align:center;margin-bottom:8px}
+  p.sub{text-align:center;color:#999;margin-bottom:28px}
+  .galeria{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:16px;
+    max-width:1200px;margin:0 auto;
+  }
+  .card{
+    background:#1a1a1a;border-radius:14px;overflow:hidden;
+    border:1px solid #2a2a2a;transition:.25s;cursor:pointer;
+  }
+  .card:hover{transform:translateY(-4px);border-color:#FF8C42}
+  .card img{width:100%;height:220px;object-fit:cover;display:block}
+  .card .info{padding:10px 12px;font-size:13px;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #loader{text-align:center;padding:40px;color:#666}
+  /* Lightbox */
+  #lightbox{
+    position:fixed;inset:0;background:rgba(0,0,0,.92);
+    display:none;place-items:center;z-index:999;padding:20px;
+  }
+  #lightbox.active{display:grid}
+  #lightbox img{max-width:95%;max-height:85vh;border-radius:12px}
+  #lightbox span{position:absolute;top:20px;right:25px;font-size:32px;cursor:pointer;color:#fff}
+</style>
+</head>
+<body>
+
+<h1>Directorio de Aliados</h1>
+<p class="sub">Sistemas a medida para fábricas y talleres</p>
+
+<div id="loader">Cargando fotos de assets/images...</div>
+<div class="galeria" id="galeria"></div>
+
+<div id="lightbox">
+  <span id="cerrar">&times;</span>
+  <img id="lightbox-img">
+</div>
+
+<script>
+// === CONFIGURA AQUÍ TU RUTA ===
+const USUARIO = 'oigonzalezp2024';
+const REPO = 'oigonzalezp2024.github.io'; // tu repo de GitHub Pages
+const RUTA_CARPETA = 'ecommerce/directorio-de-aliados/assets/images';
+// ==============================
+
+async function cargarGaleria(){
+  const url = `https://api.github.com/repos/${USUARIO}/${REPO}/contents/${RUTA_CARPETA}`;
+  const galeria = document.getElementById('galeria');
+  const loader = document.getElementById('loader');
+
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('No se pudo leer la carpeta. Verifica que exista assets/images');
+    const archivos = await res.json();
+
+    const imagenes = archivos.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|avif)$/i));
+
+    if(imagenes.length === 0){
+      loader.textContent = 'La carpeta assets/images está vacía. Sube fotos.';
+      return;
+    }
+
+    loader.style.display = 'none';
+
+    imagenes.forEach(file => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${file.download_url}" alt="${file.name}" loading="lazy">
+        <div class="info">${file.name}</div>
+      `;
+      card.onclick = () => abrir(file.download_url);
+      galeria.appendChild(card);
+    });
+
+  } catch(err){
+    loader.textContent = err.message;
+    console.error(err);
+  }
+}
+
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+function abrir(src){
+  lightboxImg.src = src;
+  lightbox.classList.add('active');
+}
+document.getElementById('cerrar').onclick = () => lightbox.classList.remove('active');
+lightbox.onclick = (e) => { if(e.target === lightbox) lightbox.classList.remove('active'); }
+
+cargarGaleria();
+</script>
+</body>
+</html>
