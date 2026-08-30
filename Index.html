@@ -48,13 +48,13 @@
 
 <script>
 // === CONFIGURA AQUÍ TU RUTA ===
-const USUARIO = 'oigonzalezp2024';
-const REPO = 'oigonzalezp2024.github.io'; // tu repo de GitHub Pages
-const RUTA_CARPETA = 'ecommerce/directorio-de-aliados/assets/images';
+const USUARIO = 'milenappalacio1976';
+const REPO = 'mi-perfil';
+const RUTA_CARPETA = 'assets/images/';
 // ==============================
 
 async function cargarGaleria(){
-  const url = `https://api.github.com/repos/${USUARIO}/${REPO}/contents/${RUTA_CARPETA}`;
+  const url = `https://api.github.com/repos/${USUARIO}/${REPO}/${RUTA_CARPETA}`;
   const galeria = document.getElementById('galeria');
   const loader = document.getElementById('loader');
 
