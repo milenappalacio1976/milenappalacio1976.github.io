@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Aliados - Galería</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Inter,system-ui,sans-serif;background:#0f0f0f;color:#fff;padding:24px}
+  h1{font-size:28px;text-align:center;margin-bottom:8px}
+  p.sub{text-align:center;color:#999;margin-bottom:28px}
+  .galeria{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:16px;
+    max-width:1200px;margin:0 auto;
+  }
+  .card{
+    background:#1a1a1a;border-radius:14px;overflow:hidden;
+    border:1px solid #2a2a2a;transition:.25s;cursor:pointer;
+  }
+  .card:hover{transform:translateY(-4px);border-color:#FF8C42}
+  .card img{width:100%;height:220px;object-fit:cover;display:block}
+  .card .info{padding:10px 12px;font-size:13px;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #loader{text-align:center;padding:40px;color:#666}
+
+  /* Lightbox */
+  #lightbox{
+    position:fixed;inset:0;background:rgba(0,0,0,.92);
+    display:none;place-items:center;z-index:999;padding:20px;
+  }
+  #lightbox.active{display:grid}
+  #lightbox img{max-width:95%;max-height:85vh;border-radius:12px;object-fit:contain}
+  #lightbox span{position:absolute;top:20px;right:25px;font-size:32px;cursor:pointer;color:#fff}
+</style>
+</head>
+<body>
+
+<h1>Directorio de Aliados</h1>
+<p class="sub">Sistemas a medida para fábricas y talleres</p>
+
+<div id="loader">Cargando imágenes de la carpeta local...</div>
+<div class="galeria" id="galeria"></div>
+
+<div id="lightbox">
+  <span id="cerrar">&times;</span>
+  <img id="lightbox-img" alt="Vista ampliada">
+</div>
+
+<script>
+const USUARIO = 'milenappalacio1976';
+const REPO = 'milenappalacio1976.github.io';
+const CARPETA_IMAGENES = 'assets/images';
+
+// Respaldo manual en caso de que falle la API de GitHub (ej: límite de peticiones)
+const RESPALDO_IMAGENES = [
+  'IMG-20260826-WA0122.jpg'
+];
+
+/**
+ * Obtiene la ruta de la carpeta del repositorio relativa al HTML actual
+ * Ejemplo: si la URL es .../epoca/2020/index.html
+ * Devuelve: "epoca/2020/assets/images"
+ */
+function obtenerRutaGithub() {
+  // Obtiene el directorio base del HTML actual
+  let pathHTML = window.location.pathname;
+  let dirActual = pathHTML.substring(0, pathHTML.lastIndexOf('/'));
+  
+  // Elimina barras diagonales sobrantes al inicio y final
+  dirActual = dirActual.replace(/^\/+|\/+$/g, '');
+
+  // Une el directorio del HTML con la carpeta de imágenes
+  return dirActual ? `${dirActual}/${CARPETA_IMAGENES}` : CARPETA_IMAGENES;
+}
+
+async function cargarGaleria() {
+  const loader = document.getElementById('loader');
+  
+  // Construye dinámicamente la ruta completa para la API
+  const rutaRepo = obtenerRutaGithub();
+  const apiUrl = `https://api.github.com/repos/${USUARIO}/${REPO}/contents/${rutaRepo}`;
+
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error(`Respuesta API (${res.status})`);
+    
+    const archivos = await res.json();
+    const imagenes = archivos
+      .filter(f => f.type === 'file' && f.name.match(/\.(jpg|jpeg|png|webp|avif)$/i))
+      .map(f => f.name);
+
+    renderizar(imagenes);
+  } catch (err) {
+    console.warn('Cargando mediante lista de respaldo:', err);
+    renderizar(RESPALDO_IMAGENES);
+  }
+}
+
+function renderizar(nombresArchivos) {
+  const galeria = document.getElementById('galeria');
+  const loader = document.getElementById('loader');
+
+  if (!nombresArchivos || nombresArchivos.length === 0) {
+    loader.textContent = 'No hay imágenes en la carpeta.';
+    return;
+  }
+
+  loader.style.display = 'none';
+  galeria.innerHTML = '';
+
+  nombresArchivos.forEach(nombre => {
+    // Se usa la ruta relativa local directa de la imagen en HTML
+    const urlImagen = `./${CARPETA_IMAGENES}/${nombre}`;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img src="${urlImagen}" alt="${nombre}" loading="lazy">
+      <div class="info">${nombre}</div>
+    `;
+    card.onclick = () => abrir(urlImagen);
+    galeria.appendChild(card);
+  });
+}
+
+// === LIGHTBOX ===
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+const cerrarBtn = document.getElementById('cerrar');
+
+function abrir(url) {
+  lightboxImg.src = url;
+  lightbox.classList.add('active');
+}
+
+function cerrar() {
+  lightbox.classList.remove('active');
+}
+
+cerrarBtn.onclick = cerrar;
+lightbox.onclick = (e) => { if (e.target === lightbox) cerrar(); };
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrar(); });
+
+// Ejecutar al cargar la página
+cargarGaleria();
+</script>
+</body>
+</html>
